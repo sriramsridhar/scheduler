@@ -278,7 +278,7 @@ function App() {
   const renderHomePage = () => (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Scheduler App</Typography>
+        <Typography variant="h4">Scheduler</Typography>
         <Button
           variant="contained"
           color="primary"

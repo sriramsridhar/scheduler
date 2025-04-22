@@ -17,7 +17,7 @@ A simple scheduler app with a Python FastAPI backend and a modern React frontend
 1. Clone the repository:
    ```sh
    git clone <repo-url>
-   cd cron-scheduler-app
+   cd scheduler
    ```
 
 2. Build and start the app:

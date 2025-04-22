@@ -16,6 +16,14 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
+// Code editor imports
+import Editor from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-bash';
+import 'prismjs/themes/prism.css';
+import 'prismjs/themes/prism-okaidia.css'; // Using a dark theme
+
 // Configure dayjs with plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -275,6 +283,32 @@ function App() {
     return status === statusFilter;
   });
 
+  // Add code highlighting function
+  const highlightCode = (code) => {
+    const language = scriptType === 'bash' ? languages.bash : languages.python;
+    return highlight(code, language, scriptType);
+  };
+
+  // Generate line numbers for display
+  const getLineNumbers = (code) => {
+    const lines = code.split('\n').length;
+    return Array.from(Array(lines).keys()).map(k => k + 1).join('\n');
+  };
+
+  // Function to highlight log output
+  const highlightLogOutput = (output, isError = false) => {
+    if (!output) return "No output";
+    
+    // Simple ansi color escape code handling
+    const colorized = output
+      .replace(/\x1b\[31m(.*?)\x1b\[0m/g, '<span style="color: red;">$1</span>')
+      .replace(/\x1b\[32m(.*?)\x1b\[0m/g, '<span style="color: green;">$1</span>')
+      .replace(/\x1b\[33m(.*?)\x1b\[0m/g, '<span style="color: yellow;">$1</span>')
+      .replace(/\x1b\[34m(.*?)\x1b\[0m/g, '<span style="color: blue;">$1</span>');
+      
+    return colorized;
+  };
+
   const renderHomePage = () => (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -425,16 +459,24 @@ function App() {
       <Dialog
         open={deleteDialogOpen}
         onClose={cancelDelete}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            confirmDelete();
+            e.preventDefault();
+          }
+        }}
       >
-        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogTitle id="delete-dialog-title">Confirm Deletion</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText id="delete-dialog-description">
             Delete this job? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={cancelDelete}>Cancel</Button>
-          <Button onClick={confirmDelete} color="error" variant="contained">
+          <Button onClick={confirmDelete} color="error" variant="contained" autoFocus>
             Delete
           </Button>
         </DialogActions>
@@ -486,35 +528,37 @@ function App() {
               <Typography variant="subtitle2" gutterBottom>Standard Output</Typography>
               <Box 
                 sx={{ 
-                  backgroundColor: '#f5f5f5', 
+                  backgroundColor: '#1e1e1e', 
                   p: 2, 
                   borderRadius: 1, 
                   mb: 2,
-                  fontFamily: 'monospace',
+                  fontFamily: '"Fira code", "Fira Mono", monospace',
                   whiteSpace: 'pre-wrap',
                   maxHeight: '200px',
-                  overflow: 'auto'
+                  overflow: 'auto',
+                  color: '#d4d4d4',
+                  fontSize: 14,
                 }}
-              >
-                {jobLogs.stdout || "No output"}
-              </Box>
+                dangerouslySetInnerHTML={{ __html: highlightLogOutput(jobLogs.stdout) }}
+              />
               
               {jobLogs.stderr && (
                 <>
                   <Typography variant="subtitle2" gutterBottom>Standard Error</Typography>
                   <Box 
                     sx={{ 
-                      backgroundColor: '#fef6f6', 
+                      backgroundColor: '#1e1e1e', 
                       p: 2, 
                       borderRadius: 1,
-                      fontFamily: 'monospace',
+                      fontFamily: '"Fira code", "Fira Mono", monospace',
                       whiteSpace: 'pre-wrap',
                       maxHeight: '200px',
-                      overflow: 'auto'
+                      overflow: 'auto',
+                      color: '#f48771',
+                      fontSize: 14,
                     }}
-                  >
-                    {jobLogs.stderr}
-                  </Box>
+                    dangerouslySetInnerHTML={{ __html: highlightLogOutput(jobLogs.stderr, true) }}
+                  />
                 </>
               )}
             </>
@@ -568,20 +612,63 @@ function App() {
           </FormControl>
           
           <Typography variant="subtitle1" gutterBottom>Script Code</Typography>
-          <Box sx={{ border: '1px solid #ccc', borderRadius: 1, mb: 3 }}>
-            <TextField
-              value={newJobCode}
-              onChange={(e) => setNewJobCode(e.target.value)}
-              multiline
-              rows={15}
-              fullWidth
+          <Box 
+            sx={{ 
+              border: '1px solid #ccc', 
+              borderRadius: 1, 
+              mb: 3,
+              overflow: 'hidden',
+              display: 'flex',
+              '.token.comment': { color: '#6a9955' },
+              '.token.string': { color: '#ce9178' },
+              '.token.number': { color: '#b5cea8' },
+              '.token.keyword': { color: '#569cd6', fontWeight: 'bold' },
+              '.token.function': { color: '#dcdcaa' },
+              '.token.boolean': { color: '#569cd6' },
+              '.token.operator': { color: '#d4d4d4' },
+              '.token.punctuation': { color: '#d4d4d4' },
+            }}
+          >
+            {/* Line numbers */}
+            <Box
               sx={{
-                fontFamily: 'monospace',
-                '& .MuiInputBase-input': {
-                  fontFamily: 'monospace',
-                },
+                width: '3em',
+                backgroundColor: '#2c2c2c',
+                color: '#858585',
+                textAlign: 'right',
+                padding: '10px 5px',
+                userSelect: 'none',
+                fontFamily: '"Fira code", "Fira Mono", monospace',
+                fontSize: 14,
+                borderRight: '1px solid #3c3c3c',
+                overflowY: 'hidden',
+                whiteSpace: 'pre',
+                lineHeight: 1.5,
               }}
-            />
+            >
+              {getLineNumbers(newJobCode)}
+            </Box>
+            
+            {/* Editor */}
+            <Box sx={{ flexGrow: 1 }}>
+              <Editor
+                value={newJobCode}
+                onValueChange={(code) => setNewJobCode(code)}
+                highlight={highlightCode}
+                padding={10}
+                style={{
+                  fontFamily: '"Fira code", "Fira Mono", monospace',
+                  fontSize: 14,
+                  minHeight: '300px',
+                  backgroundColor: '#1e1e1e',
+                  color: '#d4d4d4',
+                  tabSize: 2,
+                  lineHeight: 1.5,
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            </Box>
           </Box>
         </Box>
         

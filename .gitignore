@@ -1,5 +1,5 @@
 node_modules
-backend/jobs.db
+backend/*.db
 frontend/node_modules
 frontend/.env
 .env

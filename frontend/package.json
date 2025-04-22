@@ -10,9 +10,11 @@
     "@mui/x-date-pickers": "^8.0.0",
     "axios": "^1.6.0",
     "dayjs": "^1.11.13",
+    "prismjs": "^1.30.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-scripts": "^5.0.0"
+    "react-scripts": "^5.0.0",
+    "react-simple-code-editor": "^0.14.1"
   },
   "scripts": {
     "start": "react-scripts start",

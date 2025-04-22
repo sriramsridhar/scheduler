@@ -28,7 +28,7 @@ Advanced Features
     Workflow Builder: Visual workflow designer for creating chains of dependent jobs
     External Triggers: Allow triggering jobs via webhooks or API calls
     Version Control: Track changes to job scripts over time
-    Multi-language Support: Run scripts in languages other than Python (Node.js, Ruby, etc.)
+    Multi-language Support: Run scripts in languages other than Python (Node.js, Ruby, etc.) - added bash and python
     Distributed Execution: Run jobs across multiple worker nodes for scalability
     Custom Job Types: Support different types of jobs beyond just scripts (database queries, API calls, etc.)
     Job Categories/Tags: Organize jobs using tags or categories for better management

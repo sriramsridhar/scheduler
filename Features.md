@@ -17,7 +17,7 @@ Monitoring & Notifications
 User Experience
     Job Templates: Create reusable templates for common jobs
     Import/Export: Export job configurations as JSON/YAML for backup or sharing
-    Code Editor Enhancements: Add syntax highlighting and code completion for Python scripts
+    Code Editor Enhancements: Add syntax highlighting and code completion for Python scripts - done
     File Upload: Allow uploading Python scripts rather than just writing them in the browser
 Security & Administration
     User Authentication: Add login/user accounts with different permission levels

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Container, Typography, Box, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Snackbar, Alert, CircularProgress,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Chip, FormControlLabel, Switch, FormControl, InputLabel, Select, MenuItem, FormHelperText
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Chip, FormControlLabel, Switch, FormControl, InputLabel, Select, MenuItem, FormHelperText,
+  CssBaseline, ThemeProvider, createTheme
 } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -12,6 +13,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import InfoIcon from '@mui/icons-material/Info';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -46,6 +49,11 @@ function App() {
   const [jobLogs, setJobLogs] = useState({ stdout: "", stderr: "", status: "", execution_time: "" });
   const [selectedJobName, setSelectedJobName] = useState("");
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Initialize dark mode from localStorage, or false if not set
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
   
   // New job form state
   const [newJobName, setNewJobName] = useState("");
@@ -56,6 +64,20 @@ function App() {
   const [recurrenceType, setRecurrenceType] = useState("DAILY");
   const [recurrenceValue, setRecurrenceValue] = useState(1);
   const [createLoading, setCreateLoading] = useState(false);
+
+  // Create theme based on dark mode state
+  const theme = createTheme({
+    palette: {
+      mode: darkMode ? 'dark' : 'light',
+    },
+  });
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', JSON.stringify(newDarkMode));
+  };
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -262,25 +284,10 @@ function App() {
     }
   };
 
-  // Filter jobs based on status
+  // Filter jobs based on the selected status filter
   const filteredJobs = jobs.filter(job => {
     if (statusFilter === 'all') return true;
-    
-    const status = job.status.toLowerCase();
-    
-    if (statusFilter === 'scheduled') {
-      return status === 'scheduled' || status === 'pending';
-    }
-    
-    if (statusFilter === 'running') {
-      return status === 'running' || status === 'in_progress' || status === 'in progress';
-    }
-    
-    if (statusFilter === 'ended') {
-      return status === 'ended' || status === 'completed' || status === 'failed' || status === 'success';
-    }
-    
-    return status === statusFilter;
+    return job.status.toLowerCase() === statusFilter.toLowerCase();
   });
 
   // Add code highlighting function
@@ -313,14 +320,19 @@ function App() {
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">Scheduler</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setCurrentPage('create')}
-        >
-          New Job
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton onClick={toggleDarkMode} color="inherit" size="small">
+            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setCurrentPage('create')}
+          >
+            New Job
+          </Button>
+        </Box>
       </Box>
       
       <Box sx={{ mb: 3 }}>
@@ -575,13 +587,18 @@ function App() {
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4">Create New Job</Typography>
-        <Button
-          variant="outlined"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => setCurrentPage('home')}
-        >
-          Back to Jobs
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton onClick={toggleDarkMode} color="inherit" size="small">
+            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => setCurrentPage('home')}
+          >
+            Back to Jobs
+          </Button>
+        </Box>
       </Box>
       
       <Box component="form" onSubmit={handleCreateJob} sx={{ mb: 3 }}>
@@ -614,7 +631,8 @@ function App() {
           <Typography variant="subtitle1" gutterBottom>Script Code</Typography>
           <Box 
             sx={{ 
-              border: '1px solid #ccc', 
+              border: '1px solid',
+              borderColor: theme => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : '#ccc', 
               borderRadius: 1, 
               mb: 3,
               overflow: 'hidden',
@@ -633,14 +651,15 @@ function App() {
             <Box
               sx={{
                 width: '3em',
-                backgroundColor: '#2c2c2c',
-                color: '#858585',
+                backgroundColor: theme => theme.palette.mode === 'dark' ? '#2c2c2c' : '#f5f5f5',
+                color: theme => theme.palette.mode === 'dark' ? '#858585' : '#999',
                 textAlign: 'right',
                 padding: '10px 5px',
                 userSelect: 'none',
                 fontFamily: '"Fira code", "Fira Mono", monospace',
                 fontSize: 14,
-                borderRight: '1px solid #3c3c3c',
+                borderRight: '1px solid',
+                borderRightColor: theme => theme.palette.mode === 'dark' ? '#3c3c3c' : '#ddd',
                 overflowY: 'hidden',
                 whiteSpace: 'pre',
                 lineHeight: 1.5,
@@ -660,8 +679,8 @@ function App() {
                   fontFamily: '"Fira code", "Fira Mono", monospace',
                   fontSize: 14,
                   minHeight: '300px',
-                  backgroundColor: '#1e1e1e',
-                  color: '#d4d4d4',
+                  backgroundColor: darkMode ? '#1e1e1e' : '#ffffff',
+                  color: darkMode ? '#d4d4d4' : '#333333',
                   tabSize: 2,
                   lineHeight: 1.5,
                   width: '100%',
@@ -750,9 +769,12 @@ function App() {
   );
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      {currentPage === 'home' ? renderHomePage() : renderCreateJobPage()}
-    </LocalizationProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        {currentPage === 'home' ? renderHomePage() : renderCreateJobPage()}
+      </LocalizationProvider>
+    </ThemeProvider>
   );
 }
 
